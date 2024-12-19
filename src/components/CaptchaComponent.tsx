@@ -21,7 +21,7 @@ const CaptchaComponent: React.FC = () => {
     // Charger les scripts nécessaires
     const captchaScript = document.createElement("script");
                         //<script type="text/javascript" src="https://a0a9f3ba7ca1.eu-west-3.captcha-sdk.awswaf.com/a0a9f3ba7ca1/jsapi.js" defer></script>
-    captchaScript.src = "https://a0a9f3ba7ca1.eu-west-3.captcha-sdk.awswaf.com/a0a9f3ba7ca1/jsapi.js";
+    captchaScript.src = "https://b82b1763d1c3.ef7ef6cc.eu-west-3.captcha.awswaf.com/b82b1763d1c3/jsapi.js";
     captchaScript.type = "text/javascript";
     captchaScript.defer = true;
 
