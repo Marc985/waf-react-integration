@@ -16,9 +16,12 @@ declare global {
   }
 }
 
-const CaptchaComponent: React.FC = () => {
+interface CaptchaComponentProps {
+  onCaptchaSuccess: (wafToken: string) => void;
+}
+
+const CaptchaComponent: React.FC<CaptchaComponentProps> = ({ onCaptchaSuccess }) => {
   useEffect(() => {
-    // Charger le script CAPTCHA au montage du composant
     const captchaScript = document.createElement("script");
     captchaScript.src = "https://b82b1763d1c3.ef7ef6cc.eu-west-3.captcha.awswaf.com/b82b1763d1c3/jsapi.js";
     captchaScript.type = "text/javascript";
@@ -26,61 +29,32 @@ const CaptchaComponent: React.FC = () => {
 
     document.head.appendChild(captchaScript);
 
-    // Nettoyer le script au démontage du composant
     return () => {
       document.head.removeChild(captchaScript);
     };
   }, []);
 
   useEffect(() => {
-    // Initialiser le CAPTCHA après que le script soit chargé
     const apiKey = import.meta.env.VITE_WAF_API;
-
-   
 
     const container = document.getElementById("my-captcha-container");
 
     if (window.AwsWafCaptcha && container) {
       window.AwsWafCaptcha.renderCaptcha(container, {
         apiKey: apiKey,
-        onSuccess: captchaExampleSuccessFunction,
-        onError: captchaExampleErrorFunction,
+        onSuccess: onCaptchaSuccess, // Passer la fonction de rappel ici
+        onError: (error: unknown) => {
+          console.error("Captcha Error:", error);
+        },
       });
     } else {
       console.error("Captcha SDK ou conteneur non trouvé");
     }
-  }, []); // Ce useEffect se déclenche après le premier rendu, lorsque le script est chargé
-
-  const captchaExampleSuccessFunction = (wafToken: string) => {
-    console.log("WAF Token:", wafToken);
-
-    // Utiliser le token pour authentifier ou valider l'utilisateur
-    fetch("...WAF-protected URL...", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token: wafToken }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Response:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-
-  const captchaExampleErrorFunction = (error: unknown) => {
-    console.error("Captcha Error:", error);
-  };
+  }, [onCaptchaSuccess]); // S'assurer que la fonction est mise à jour
 
   return (
     <div>
-      <div id="my-captcha-container" style={{ marginBottom: "20px" }}>
-        {/* Conteneur du CAPTCHA */}
-      </div>
-      {/* Le bouton peut être supprimé si vous souhaitez afficher le CAPTCHA dès le chargement */}
+      <div id="my-captcha-container" style={{ marginBottom: "20px" }}></div>
     </div>
   );
 };

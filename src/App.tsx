@@ -21,32 +21,47 @@ const App: React.FC = () => {
         setOutput("");
         setCaptchaRequired(false); // Reset captcha flag
 
-        for (let i = 1; i <= number; i++) {
-            try {
-                const response = await fetch(apiUrl);
+        // Fonction pour exécuter la boucle
+        const runSequence = async () => {
+            for (let i = 1; i <= number; i++) {
+                try {
+                    const response = await fetch(apiUrl);
 
-                if (response.ok && response.status === 403) {
-                    setOutput((prev) => prev + `${i}. Forbidden\n`);
-                } else if (response.status === 405) {
-                    // Si la réponse est 405, activer le captcha
-                    setOutput((prev) => prev + `${i}. Captcha required, stopping the sequence.\n`);
-                    setCaptchaRequired(true); // Afficher le captcha
-                    break; // Arrêter la séquence
-                } else {
-                    setOutput((prev) => prev + `${i}. Forbidden (other)\n`);
+                    if (response.ok && response.status === 403) {
+                        setOutput((prev) => prev + `${i}. Forbidden\n`);
+                    } else if (response.status === 405) {
+                        // Si la réponse est 405, activer le captcha
+                        setOutput((prev) => prev + `${i}. Captcha required, stopping the sequence.\n`);
+                        setCaptchaRequired(true); // Afficher le captcha
+                        break; // Arrêter la séquence
+                    } else {
+                        setOutput((prev) => prev + `${i}. Forbidden (other)\n`);
+                    }
+                } catch (error) {
+                    setOutput((prev) => prev + `${i}. Error: ${error instanceof Error ? error.message : "Unknown error"}\n`);
                 }
-            } catch (error) {
-                setOutput((prev) => prev + `${i}. Error: ${error instanceof Error ? error.message : "Unknown error"}\n`);
+
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
             }
 
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
-        }
+            if (!captchaRequired) {
+                setOutput((prev) => prev + "Sequence complete!");
+            }
 
-        if (!captchaRequired) {
-            setOutput((prev) => prev + "Sequence complete!");
-        }
-        
-        setIsRunning(false);
+            setIsRunning(false);
+        };
+
+        runSequence();
+    };
+
+    // Fonction de reprise de la boucle après CAPTCHA
+    const handleCaptchaSuccess = async (wafToken: string) => {
+        console.log("WAF Token reçu :", wafToken);
+        // Vous pouvez envoyer le token au backend pour validation ici si nécessaire.
+        // Une fois validé, reprendre la boucle
+        setCaptchaRequired(false);
+        const mockEvent = { preventDefault: () => {} } as React.FormEvent;
+        await handleSubmit(mockEvent); // Reprendre la soumission du formulaire
     };
 
     return (
@@ -80,7 +95,7 @@ const App: React.FC = () => {
             >
                 {output}
             </pre>
-            {captchaRequired && <CaptchaComponent />} {/* Afficher le composant captcha si nécessaire */}
+            {captchaRequired && <CaptchaComponent onCaptchaSuccess={handleCaptchaSuccess} />} {/* Passer la fonction de succès */}
         </div>
     );
 };
