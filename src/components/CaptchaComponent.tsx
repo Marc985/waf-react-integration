@@ -39,7 +39,7 @@ const CaptchaComponent: React.FC<CaptchaComponentProps> = ({ onCaptchaSuccess })
 
     const container = document.getElementById("my-captcha-container");
 
-    if (window.AwsWafCaptcha) {
+    if (window.AwsWafCaptcha && container) {
       window.AwsWafCaptcha.renderCaptcha(container, {
         apiKey: apiKey,
         onSuccess: onCaptchaSuccess, // Passer la fonction de rappel ici
